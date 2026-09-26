@@ -6,7 +6,7 @@ import {
   LayoutDashboard, MapPin, Package, Truck, Wrench, Users,
   Car, Warehouse, FileText, MessageSquare, BarChart3,
   Settings, Calendar, ClipboardList, Building2, ShoppingCart,
-  Bell, LogOut, ShieldAlert
+  LogOut, ShieldAlert, X,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -33,7 +33,13 @@ const navItems = [
   { href: '/settings',   label: 'Settings',         icon: Settings },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean
+  onClose: () => void
+}) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
@@ -45,14 +51,33 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="w-64 min-h-screen bg-slate-900 text-white flex flex-col">
-      <div className="p-4 border-b border-slate-700">
-        <h1 className="font-bold text-lg leading-tight">MASTER APP</h1>
-        <p className="text-xs text-slate-400 mt-1">
-          Scheidt and Bachmann Middle East
-        </p>
+    <aside
+      className={`
+        fixed top-0 left-0 h-full w-64 bg-slate-900 text-white flex flex-col z-40
+        transform transition-transform duration-300 ease-in-out
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        lg:translate-x-0
+      `}
+      style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+    >
+      {/* Header with close button on mobile */}
+      <div className="p-4 border-b border-slate-700 flex items-center justify-between">
+        <div className="min-w-0">
+          <h1 className="font-bold text-lg leading-tight">MASTER APP</h1>
+          <p className="text-xs text-slate-400 mt-1 truncate">
+            Scheidt and Bachmann Middle East
+          </p>
+        </div>
+        <button
+          onClick={onClose}
+          className="lg:hidden p-1 -mr-1 text-slate-400 hover:text-white"
+          aria-label="Close menu"
+        >
+          <X size={22} />
+        </button>
       </div>
 
+      {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-2">
         {navItems.map((item) => {
           const Icon = item.icon
@@ -61,7 +86,8 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-4 py-2 text-sm hover:bg-slate-800 transition ${
+              onClick={onClose}
+              className={`flex items-center gap-3 px-4 py-3 text-sm hover:bg-slate-800 transition ${
                 active ? 'bg-blue-600 hover:bg-blue-600' : ''
               }`}
             >
@@ -72,10 +98,11 @@ export default function Sidebar() {
         })}
       </nav>
 
+      {/* Footer with logout */}
       <div className="p-4 border-t border-slate-700">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2 text-sm text-slate-300 hover:text-white"
+          className="flex items-center gap-2 text-sm text-slate-300 hover:text-white w-full"
         >
           <LogOut size={16} /> Logout
         </button>

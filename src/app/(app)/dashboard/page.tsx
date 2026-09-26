@@ -27,7 +27,7 @@ export default async function DashboardPage() {
         <p className="text-slate-500 mt-1">Complete visibility of your company operations</p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <StatCard label="Employees"    value={employees ?? 0}  icon={Users}        color="blue"   href="/hr" />
         <StatCard label="Active Sites" value={sites ?? 0}      icon={MapPin}       color="green"  href="/sites" />
         <StatCard label="Assets"       value={assets ?? 0}     icon={Package}      color="purple" href="/assets" />
