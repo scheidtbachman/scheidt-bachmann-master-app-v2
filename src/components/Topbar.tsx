@@ -1,9 +1,10 @@
 'use client'
 
-import { Search, Bell, Menu } from 'lucide-react'
+import { Search, Menu } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import NotificationsBell from './NotificationsBell'
 
 export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   const supabase = createClient()
@@ -21,7 +22,7 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
     if (searchTerm.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchTerm)}`)
+      router.push(`/search?q=${encodeURIComponent(searchTerm.trim())}`)
       setMobileSearchOpen(false)
     }
   }
@@ -41,7 +42,7 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
           <Menu size={22} className="text-slate-700" />
         </button>
 
-        {/* Desktop search — hidden below md */}
+        {/* Desktop search */}
         <form onSubmit={handleSearch} className="hidden md:block flex-1 max-w-xl">
           <div className="relative">
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -55,7 +56,7 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
           </div>
         </form>
 
-        {/* Mobile search icon — visible only on mobile */}
+        {/* Mobile search icon */}
         <button
           onClick={() => setMobileSearchOpen((v) => !v)}
           className="md:hidden p-2 hover:bg-slate-100 rounded-lg flex-shrink-0"
@@ -66,12 +67,10 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
 
         {/* Right-side controls */}
         <div className="flex items-center gap-2 md:gap-4 ml-auto flex-shrink-0">
-          <button className="relative p-2 hover:bg-slate-100 rounded-lg" aria-label="Notifications">
-            <Bell size={20} className="text-slate-600" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
+          {/* 🔔 Notifications — now functional */}
+          <NotificationsBell />
 
-          {/* User info — hidden on very small screens, shown on sm+ */}
+          {/* User info */}
           <div className="hidden sm:block text-right">
             <div className="text-sm font-medium truncate max-w-[140px] md:max-w-[200px]">
               {userName}
@@ -79,14 +78,14 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
             <div className="text-xs text-slate-500">Online</div>
           </div>
 
-          {/* Avatar — only visible on very small screens */}
+          {/* Avatar */}
           <div className="sm:hidden w-8 h-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
             {userName.charAt(0).toUpperCase()}
           </div>
         </div>
       </div>
 
-      {/* Mobile search bar — expands below topbar when tapped */}
+      {/* Mobile search bar */}
       {mobileSearchOpen && (
         <form onSubmit={handleSearch} className="md:hidden border-t px-3 py-2 bg-slate-50">
           <div className="relative">
@@ -94,7 +93,7 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
             <input
               autoFocus
               type="text"
-              placeholder="Search..."
+              placeholder="Search anything..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
