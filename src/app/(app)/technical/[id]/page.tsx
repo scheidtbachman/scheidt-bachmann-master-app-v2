@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import PageHeader from '@/components/PageHeader'
+import TicketActions from '@/components/TicketActions'
 import Link from 'next/link'
 import { Wrench, MapPin, Package, User, Calendar, CheckCircle2, Circle } from 'lucide-react'
 
@@ -15,18 +16,22 @@ export default async function TicketDetail({ params }: { params: { id: string } 
   if (!t) return <div className="p-12 text-center text-slate-500">Ticket not found</div>
 
   const { data: technician } = t.assigned_technician_id
-    ? await supabase.from('profiles').select('full_name, email, mobile').eq('id', t.assigned_technician_id).single()
+    ? await supabase
+        .from('profiles')
+        .select('full_name, email, mobile')
+        .eq('id', t.assigned_technician_id)
+        .single()
     : { data: null }
 
   const statusColor: Record<string, string> = {
-    open:           'bg-red-100 text-red-700',
-    accepted:       'bg-blue-100 text-blue-700',
-    traveling:      'bg-orange-100 text-orange-700',
-    in_progress:    'bg-purple-100 text-purple-700',
-    waiting_parts:  'bg-yellow-100 text-yellow-700',
-    resolved:       'bg-green-100 text-green-700',
-    closed:         'bg-slate-200 text-slate-600',
-    cancelled:      'bg-slate-100 text-slate-500',
+    open:          'bg-red-100 text-red-700',
+    accepted:      'bg-blue-100 text-blue-700',
+    traveling:     'bg-orange-100 text-orange-700',
+    in_progress:   'bg-purple-100 text-purple-700',
+    waiting_parts: 'bg-yellow-100 text-yellow-700',
+    resolved:      'bg-green-100 text-green-700',
+    closed:        'bg-slate-200 text-slate-600',
+    cancelled:     'bg-slate-100 text-slate-500',
   }
 
   const priorityColor: Record<string, string> = {
@@ -36,14 +41,13 @@ export default async function TicketDetail({ params }: { params: { id: string } 
     critical: 'bg-red-100 text-red-700',
   }
 
-  // Technician workflow steps
   const workflow = [
-    { key: 'open',          label: 'Ticket Created' },
-    { key: 'accepted',      label: 'Technician Accepted' },
-    { key: 'traveling',     label: 'Traveling to Site' },
-    { key: 'in_progress',   label: 'Working on Issue' },
-    { key: 'resolved',      label: 'Resolved' },
-    { key: 'closed',        label: 'Customer Confirmed & Closed' },
+    { key: 'open',        label: 'Ticket Created' },
+    { key: 'accepted',    label: 'Technician Accepted' },
+    { key: 'traveling',   label: 'Traveling to Site' },
+    { key: 'in_progress', label: 'Working on Issue' },
+    { key: 'resolved',    label: 'Resolved' },
+    { key: 'closed',      label: 'Customer Confirmed & Closed' },
   ]
 
   const currentIdx = workflow.findIndex((w) => w.key === t.status)
@@ -79,15 +83,20 @@ export default async function TicketDetail({ params }: { params: { id: string } 
           <div className="text-xs text-slate-500 uppercase tracking-wide mb-1 flex items-center gap-1">
             <Package size={12} /> Equipment
           </div>
-          <div className="text-sm font-medium truncate">
-            {(t.assets as any)?.asset_id || '—'}
-          </div>
+          <div className="text-sm font-medium truncate">{(t.assets as any)?.asset_id || '—'}</div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main content */}
         <div className="lg:col-span-2 space-y-6">
+          {/* ─── ACTIONS PANEL — the new part ─── */}
+          <TicketActions
+            ticketId={t.id}
+            status={t.status as any}
+            ticketNumber={t.ticket_number}
+          />
+
           {/* Problem */}
           <div className="bg-white border rounded-lg p-5">
             <h2 className="font-semibold mb-3 flex items-center gap-2">
@@ -98,7 +107,7 @@ export default async function TicketDetail({ params }: { params: { id: string } 
             </p>
           </div>
 
-          {/* Work Done (if resolved) */}
+          {/* Work done (only shows if resolved) */}
           {t.work_done && (
             <div className="bg-white border rounded-lg p-5">
               <h2 className="font-semibold mb-3">Work Performed</h2>
@@ -106,11 +115,19 @@ export default async function TicketDetail({ params }: { params: { id: string } 
             </div>
           )}
 
-          {/* Parts Used */}
+          {/* Parts used */}
           {t.parts_used && (
             <div className="bg-white border rounded-lg p-5">
               <h2 className="font-semibold mb-3">Parts Used</h2>
               <p className="text-sm text-slate-700 whitespace-pre-wrap">{t.parts_used}</p>
+            </div>
+          )}
+
+          {/* Customer signature (only shows if closed) */}
+          {t.customer_signature && (
+            <div className="bg-white border rounded-lg p-5">
+              <h2 className="font-semibold mb-3">Customer Confirmation</h2>
+              <p className="text-sm text-slate-700">{t.customer_signature}</p>
             </div>
           )}
 
