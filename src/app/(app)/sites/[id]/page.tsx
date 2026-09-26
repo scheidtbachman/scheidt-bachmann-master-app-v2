@@ -74,7 +74,6 @@ export default function EditSitePage() {
     setForm((f) => ({ ...f, [key]: value }))
   }
 
-  // "Use current location" — reads device GPS and fills lat/lng
   function useCurrentLocation() {
     if (!navigator.geolocation) {
       alert('Geolocation is not supported by this browser')
@@ -94,20 +93,27 @@ export default function EditSitePage() {
     setLoading(true)
     setError('')
 
+    // Ensure site_code is never empty
+    let siteCode = form.site_code.trim()
+    if (!siteCode) {
+      siteCode = `SITE-${Math.floor(10000 + Math.random() * 90000)}`
+      update('site_code', siteCode)
+    }
+
     const { error } = await supabase
       .from('sites')
       .update({
-        site_code: form.site_code,
-        name: form.name,
-        customer_name: form.customer_name || null,
-        address: form.address || null,
+        site_code: siteCode,
+        name: form.name.trim(),
+        customer_name: form.customer_name.trim() || null,
+        address: form.address.trim() || null,
         gps_lat: form.gps_lat ? Number(form.gps_lat) : null,
         gps_lng: form.gps_lng ? Number(form.gps_lng) : null,
         capacity: Number(form.capacity) || 0,
         contract_start: form.contract_start || null,
         contract_end: form.contract_end || null,
         status: form.status,
-        notes: form.notes || null,
+        notes: form.notes.trim() || null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', params.id)
@@ -123,9 +129,7 @@ export default function EditSitePage() {
   }
 
   if (initialLoading) {
-    return (
-      <div className="p-12 text-center text-slate-500">Loading site...</div>
-    )
+    return <div className="p-12 text-center text-slate-500">Loading site...</div>
   }
 
   return (
@@ -137,8 +141,44 @@ export default function EditSitePage() {
         <div>
           <h2 className="font-semibold text-slate-900 mb-3">Basic Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input label="Site Code *" value={form.site_code} onChange={(v) => update('site_code', v)} required />
-            <Input label="Site Name *" value={form.name} onChange={(v) => update('name', v)} required />
+            {/* Site Code with regenerate button */}
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Site Code <span className="text-red-500">*</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  value={form.site_code}
+                  onChange={(e) => update('site_code', e.target.value)}
+                  required
+                  placeholder="e.g., SITE-12345"
+                  className="flex-1 border rounded-lg px-3 py-2 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    update('site_code', `SITE-${Math.floor(10000 + Math.random() * 90000)}`)
+                  }
+                  className="px-3 border rounded-lg text-sm text-blue-600 hover:bg-blue-50"
+                  title="Generate new code"
+                >
+                  ↻
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Site Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                value={form.name}
+                onChange={(e) => update('name', e.target.value)}
+                required
+                className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
             <Input label="Customer" value={form.customer_name} onChange={(v) => update('customer_name', v)} />
             <Input
               label="Capacity (parking slots)"
@@ -157,11 +197,7 @@ export default function EditSitePage() {
             <Input label="GPS Latitude" value={form.gps_lat} onChange={(v) => update('gps_lat', v)} placeholder="e.g., 25.2048" />
             <Input label="GPS Longitude" value={form.gps_lng} onChange={(v) => update('gps_lng', v)} placeholder="e.g., 55.2708" />
           </div>
-          <button
-            type="button"
-            onClick={useCurrentLocation}
-            className="mt-3 text-sm text-blue-600 hover:underline"
-          >
+          <button type="button" onClick={useCurrentLocation} className="mt-3 text-sm text-blue-600 hover:underline">
             📍 Use my current location
           </button>
         </div>
@@ -203,9 +239,7 @@ export default function EditSitePage() {
           />
         </div>
 
-        {error && (
-          <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">{error}</div>
-        )}
+        {error && <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">{error}</div>}
 
         <div className="flex flex-col sm:flex-row gap-3 pt-2">
           <button
